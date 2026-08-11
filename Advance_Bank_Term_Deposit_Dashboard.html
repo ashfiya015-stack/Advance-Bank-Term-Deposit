@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Advance Bank — Term Deposit Campaign Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.35.2/plotly.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0d12;
+    --bg-grid: rgba(255,255,255,0.035);
+    --surface:#12161f;
+    --surface-raised:#161b26;
+    --border:#232838;
+    --border-soft: rgba(255,255,255,0.06);
+    --text:#edeff4;
+    --text-muted:#8a93a6;
+    --text-faint:#5b6478;
+    --accent:#34d399;
+    --accent-soft: rgba(52,211,153,0.12);
+    --accent2:#f2b84b;
+    --accent2-soft: rgba(242,184,75,0.12);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(52,211,153,0.09), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(242,184,75,0.06), transparent 55%),
+      var(--bg);
+    background-attachment: fixed;
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(var(--bg-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black, transparent 75%);
+    pointer-events:none;
+    z-index:0;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:1180px;
+    margin:0 auto;
+    padding:56px 32px 80px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:24px;
+    padding-bottom:36px;
+    border-bottom:1px solid var(--border-soft);
+    margin-bottom:40px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color:var(--accent);
+    display:flex;
+    align-items:center;
+    gap:9px;
+    margin-bottom:14px;
+  }
+  .eyebrow .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 0 3px var(--accent-soft);
+  }
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-weight:700;
+    font-size:clamp(28px, 4vw, 42px);
+    line-height:1.08;
+    letter-spacing:-0.01em;
+    margin:0 0 10px;
+  }
+  h1 span{color:var(--text-muted); font-weight:500;}
+  .subtitle{
+    color:var(--text-muted);
+    font-size:14.5px;
+    max-width:560px;
+    line-height:1.55;
+  }
+  .meta-block{
+    text-align:right;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--text-faint);
+    line-height:1.9;
+  }
+  .meta-block b{ color:var(--text-muted); font-weight:500; }
+
+  /* ---------- KPI strip ---------- */
+  .kpi-row{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:1px;
+    background:var(--border-soft);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    overflow:hidden;
+    margin-bottom:48px;
+  }
+  .kpi{
+    background:var(--surface);
+    padding:26px 28px;
+    position:relative;
+  }
+  .kpi-label{
+    font-size:12px;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-bottom:12px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .kpi-value{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:38px;
+    letter-spacing:-0.02em;
+    color:var(--text);
+  }
+  .kpi-value .unit{
+    font-size:19px;
+    color:var(--accent);
+    font-weight:500;
+    margin-left:3px;
+  }
+  .kpi-sub{
+    margin-top:10px;
+    font-size:12.5px;
+    color:var(--text-faint);
+  }
+  .kpi::after{
+    content:"";
+    position:absolute; left:28px; right:28px; bottom:0;
+    height:2px;
+    background:linear-gradient(90deg, var(--accent), transparent);
+    transform:scaleX(0);
+    transform-origin:left;
+    animation: growLine 1.1s 0.3s cubic-bezier(.2,.8,.2,1) forwards;
+  }
+  .kpi:nth-child(2)::after{ animation-delay:0.45s; }
+  .kpi:nth-child(3)::after{ animation-delay:0.6s; background:linear-gradient(90deg, var(--accent2), transparent); }
+  @keyframes growLine{ to{ transform:scaleX(1); } }
+
+  /* ---------- Section / panel system ---------- */
+  .grid-row{
+    display:grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap:20px;
+    margin-bottom:20px;
+  }
+  @media (max-width: 860px){ .grid-row{ grid-template-columns:1fr; } }
+
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border-soft);
+    border-radius:var(--radius);
+    padding:26px 26px 22px;
+  }
+  .panel-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:6px;
+  }
+  .panel-title{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:16.5px;
+    font-weight:600;
+  }
+  .panel-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--text-faint);
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding-top:3px;
+  }
+  .insight{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px dashed var(--border-soft);
+    font-size:12.8px;
+    line-height:1.6;
+    color:var(--text-muted);
+    display:flex;
+    gap:9px;
+  }
+  .insight .mk{
+    color:var(--accent);
+    flex-shrink:0;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .insight b{ color:var(--text); font-weight:600; }
+
+  /* ---------- Custom comparison bars (contact method / contacts by outcome) ---------- */
+  .cmp{ margin-top:18px; display:flex; flex-direction:column; gap:18px; }
+  .cmp-item .cmp-top{
+    display:flex; justify-content:space-between; align-items:baseline;
+    margin-bottom:7px;
+  }
+  .cmp-item .cmp-label{ font-size:13px; color:var(--text-muted); }
+  .cmp-item .cmp-value{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700; font-size:16px; color:var(--text);
+  }
+  .cmp-track{
+    height:9px;
+    border-radius:5px;
+    background:rgba(255,255,255,0.05);
+    overflow:hidden;
+  }
+  .cmp-fill{
+    height:100%; border-radius:5px;
+    width:0%;
+    transition:width 1.1s cubic-bezier(.2,.8,.2,1);
+  }
+  .cmp-fill.a{ background:linear-gradient(90deg, var(--accent), #1ea57c); }
+  .cmp-fill.b{ background:linear-gradient(90deg, var(--accent2), #c98f2b); }
+
+  .chart{ margin-top:10px; }
+
+  footer{
+    margin-top:44px;
+    padding-top:22px;
+    border-top:1px solid var(--border-soft);
+    display:flex;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:11.5px;
+    color:var(--text-faint);
+    font-family:'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <div class="eyebrow"><span class="dot"></span>Term Deposit Campaign · EDA Report</div>
+      <h1>Advance Bank <span>— Customer &amp; Campaign Dashboard</span></h1>
+      <div class="subtitle">Telemarketing outcomes across 41,188 retail customers contacted to promote a term deposit product. Figures below are subscription rates, not raw counts.</div>
+    </div>
+    <div class="meta-block">
+      DATASET&nbsp;&nbsp;<b>bank-additional-full</b><br>
+      RECORDS&nbsp;&nbsp;<b>41,188</b><br>
+      GENERATED&nbsp;&nbsp;<b id="gen-date">—</b>
+    </div>
+  </header>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total Customers Contacted</div>
+      <div class="kpi-value"><span id="kpi-total">0</span></div>
+      <div class="kpi-sub">across the full campaign period</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Term Deposit Subscription Rate</div>
+      <div class="kpi-value"><span id="kpi-rate">0.00</span><span class="unit">%</span></div>
+      <div class="kpi-sub">4,640 of 41,188 said yes</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Average Call Duration</div>
+      <div class="kpi-value"><span id="kpi-dur">0</span><span class="unit" style="color:var(--accent2)">sec</span></div>
+      <div class="kpi-sub">≈ 4 min 18 sec per contact</div>
+    </div>
+  </div>
+
+  <div class="grid-row">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Subscription Rate by Job</div>
+        <div class="panel-tag">% who subscribed</div>
+      </div>
+      <div id="chart-job" class="chart"></div>
+      <div class="insight"><span class="mk">→</span><span><b>Students and retirees convert 2–4× better</b> than working-age segments — likely lower debt load and more flexible income, not more outreach.</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Subscription by Contact Method</div>
+        <div class="panel-tag">cellular vs. landline</div>
+      </div>
+      <div class="cmp">
+        <div class="cmp-item">
+          <div class="cmp-top"><span class="cmp-label">Cellular</span><span class="cmp-value">14.74%</span></div>
+          <div class="cmp-track"><div class="cmp-fill a" data-w="100"></div></div>
+        </div>
+        <div class="cmp-item">
+          <div class="cmp-top"><span class="cmp-label">Telephone</span><span class="cmp-value">5.23%</span></div>
+          <div class="cmp-track"><div class="cmp-fill b" data-w="35.5"></div></div>
+        </div>
+      </div>
+      <div class="insight"><span class="mk">→</span><span>Cellular outreach converts <b>nearly 3× better</b> than landline calls — a strong case for deprioritizing telephone contact lists.</span></div>
+    </div>
+  </div>
+
+  <div class="grid-row">
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Customer Age Distribution</div>
+        <div class="panel-tag">n = 41,188</div>
+      </div>
+      <div id="chart-age" class="chart"></div>
+      <div class="insight"><span class="mk">→</span><span>The base skews <b>30–45 years old</b> and tapers sharply after retirement age — outreach is concentrated where volume is highest, not necessarily where conversion is highest.</span></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <div class="panel-title">Contacts per Customer</div>
+        <div class="panel-tag">by outcome</div>
+      </div>
+      <div class="cmp">
+        <div class="cmp-item">
+          <div class="cmp-top"><span class="cmp-label">Subscribed — No</span><span class="cmp-value">2.63</span></div>
+          <div class="cmp-track"><div class="cmp-fill b" data-w="100"></div></div>
+        </div>
+        <div class="cmp-item">
+          <div class="cmp-top"><span class="cmp-label">Subscribed — Yes</span><span class="cmp-value">2.05</span></div>
+          <div class="cmp-track"><div class="cmp-fill a" data-w="78"></div></div>
+        </div>
+      </div>
+      <div class="insight"><span class="mk">→</span><span>Customers who said <b>yes needed fewer calls</b> than those who said no — persistence past the third touch shows diminishing returns.</span></div>
+    </div>
+  </div>
+
+  <footer>
+    <span>ADVANCE BANK · INTERNAL ANALYTICS</span>
+    <span>Source: UCI Bank Marketing (bank-additional-full) · rendered client-side with Plotly.js</span>
+  </footer>
+
+</div>
+
+<script>
+  document.getElementById('gen-date').textContent = new Date().toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' });
+
+  // ---- count-up KPIs ----
+  function countUp(el, target, decimals, duration){
+    const start = performance.now();
+    function tick(now){
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      const val = target * eased;
+      el.textContent = decimals ? val.toFixed(decimals) : Math.round(val).toLocaleString('en-US');
+      if(p < 1) requestAnimationFrame(tick);
+      else el.textContent = decimals ? target.toFixed(decimals) : target.toLocaleString('en-US');
+    }
+    requestAnimationFrame(tick);
+  }
+  countUp(document.getElementById('kpi-total'), 41188, 0, 1200);
+  countUp(document.getElementById('kpi-rate'), 11.27, 2, 1200);
+  countUp(document.getElementById('kpi-dur'), 258, 0, 1200);
+
+  requestAnimationFrame(()=> setTimeout(()=>{
+    document.querySelectorAll('.cmp-fill').forEach(f => { f.style.width = f.dataset.w + '%'; });
+  }, 150));
+
+  // ---- shared Plotly styling ----
+  const FONT = { family:'Inter, sans-serif', color:'#8a93a6', size:12 };
+  const GRID = 'rgba(255,255,255,0.06)';
+  const baseLayout = {
+    paper_bgcolor:'rgba(0,0,0,0)',
+    plot_bgcolor:'rgba(0,0,0,0)',
+    font: FONT,
+    margin:{ t:8, r:14, b:36, l:110 },
+    hoverlabel:{ bgcolor:'#171c27', bordercolor:'#232838', font:{ family:'JetBrains Mono, monospace', color:'#edeff4', size:11.5 } },
+    showlegend:false
+  };
+  const config = { displayModeBar:false, responsive:true };
+
+  // ---- Subscription by Job ----
+  const jobs   = ['Student','Retired','Unemployed','Admin.','Management','Unknown','Technician','Self-employed','Housemaid','Entrepreneur','Services','Blue-collar'];
+  const jobRates = [31.43,25.23,14.20,12.97,11.22,11.21,10.83,10.49,10.00,8.52,8.14,6.89];
+  const jobColors = jobRates.map(v => v >= 20 ? '#34d399' : (v >= 11 ? 'rgba(52,211,153,0.55)' : 'rgba(52,211,153,0.28)'));
+
+  Plotly.newPlot('chart-job', [{
+    type:'bar', orientation:'h',
+    x: jobRates.slice().reverse(),
+    y: jobs.slice().reverse(),
+    marker:{ color: jobColors.slice().reverse(), line:{width:0} },
+    hovertemplate:'%{y}: <b>%{x:.2f}%</b><extra></extra>',
+    text: jobRates.slice().reverse().map(v => v.toFixed(1)+'%'),
+    textposition:'outside',
+    textfont:{ family:'JetBrains Mono, monospace', size:11, color:'#8a93a6' },
+    cliponaxis:false
+  }], Object.assign({}, baseLayout, {
+    height:340,
+    xaxis:{ visible:false, range:[0, 36] },
+    yaxis:{ gridcolor:'transparent', tickfont:{ size:12.5, color:'#c3c9d6' }, automargin:true }
+  }), config);
+
+  // ---- Age distribution ----
+  const ageCenters = [18.4,21.1,23.8,26.5,29.1,31.9,34.5,37.2,40.0,42.7,45.4,48.0,50.8,53.5,56.2,58.9,61.6,64.2,67.0,69.7,72.3,75.1,77.8,80.5,83.2,85.9,88.6,91.2,94.0,96.7];
+  const ageCounts  = [75,304,1287,1549,4168,5626,3504,4662,3871,2197,3144,2746,2408,1417,1998,1322,135,156,116,81,121,90,61,51,41,24,24,6,2,2];
+
+  Plotly.newPlot('chart-age', [{
+    type:'bar',
+    x: ageCenters,
+    y: ageCounts,
+    marker:{ color:'rgba(52,211,153,0.75)', line:{ color:'#0a0d12', width:1 } },
+    hovertemplate:'age ≈ %{x}: <b>%{y:,}</b> customers<extra></extra>'
+  }], Object.assign({}, baseLayout, {
+    height:260,
+    margin:{ t:8, r:14, b:34, l:44 },
+    xaxis:{ title:{ text:'Age', font:{ size:11.5 } }, gridcolor:'transparent', tickfont:{size:11} },
+    yaxis:{ gridcolor: GRID, tickfont:{size:11}, zeroline:false }
+  }), config);
+
+  window.addEventListener('resize', () => {
+    Plotly.Plots.resize('chart-job');
+    Plotly.Plots.resize('chart-age');
+  });
+</script>
+</body>
+</html>
