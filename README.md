@@ -33,7 +33,6 @@ The dataset contains customer information and details about interactions during 
 | Category          | Features                              |
 | ----------------- | ------------------------------------- |
 | Customer          | Age, Job, Marital Status, Education   |
-| Financial         | Balance                               |
 | Contact           | Contact Method, Month, Day            |
 | Campaign          | Duration, Campaign, Previous Contacts |
 | Previous Campaign | Previous Outcome                      |
@@ -97,9 +96,9 @@ The project analyzes:
 * Customer characteristics
 * Subscription behavior across customer groups
 
-### 💰 Balance & Subscription
+### 📊 Subscription Analysis
 
-Customer account balance was analyzed to identify patterns associated with term deposit subscription.
+The analysis examines customer characteristics and subscription behavior to identify patterns associated with term deposit subscription.
 
 ### 📞 Campaign Effectiveness
 
