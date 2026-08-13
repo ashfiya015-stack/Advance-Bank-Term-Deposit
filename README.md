@@ -61,7 +61,6 @@ The target variable indicates whether a customer subscribed to a term deposit:
 
 ## 🔍 Project Workflow
 
-```text
 Dataset
    ↓
 Data Loading & Inspection
@@ -85,9 +84,7 @@ Model Evaluation
 Interactive Dashboard
    ↓
 Business Insights & Recommendations
-```
 
----
 
 ## 📊 Exploratory Data Analysis
 
@@ -251,8 +248,6 @@ Open the HTML dashboard located inside:
 ```text
 dashboard/
 ```
-
----
 
 ## 🎓 Skills Demonstrated
 
